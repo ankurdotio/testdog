@@ -1,0 +1,12 @@
+{
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "workbench.colorTheme": "Night Owl Black (No Italics)",
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "always",
+        "source.fixAll.eslint": "always"
+    },
+    "eslint.validate": [
+        "javascript"
+    ]
+}
