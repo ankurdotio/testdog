@@ -60,7 +60,7 @@ export const customValidators = {
       // Otherwise try to parse it as an international number
       const phoneNumber = parsePhoneNumber(value);
       return phoneNumber && phoneNumber.isValid();
-    } catch (error) {
+    } catch (error) { // eslint-disable-line no-unused-vars
       // If parsing fails, it's not a valid number
       return false;
     }

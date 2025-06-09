@@ -1,4 +1,3 @@
-import config from '../config/config.js';
 import userServices from '../services/user.service.js';
 import asyncHandler from '../utils/asyncHandler.js';
 

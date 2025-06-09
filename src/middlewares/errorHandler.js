@@ -6,7 +6,7 @@ import config from '../config/config.js';
  * Global error handling middleware
  * Handles errors passed from controllers or thrown in the application
  */
-const errorHandler = (err, req, res, next) => { // eslint-disable-line no-unused-vars
+const errorHandler = (err, req, res, next) => {// eslint-disable-line no-unused-vars
   let error = { ...err };
   error.message = err.message;
 
@@ -52,6 +52,7 @@ const errorHandler = (err, req, res, next) => { // eslint-disable-line no-unused
 
   // Send error response
   res.status(error.statusCode).json({
+    success: false,
     status: error.status,
     message: error.message,
     stack: config.NODE_ENV === 'development' ? err.stack : undefined,

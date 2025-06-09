@@ -3,7 +3,6 @@ import userController from '../controllers/user.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { updateUserValidator } from '../validators/user.validator.js';
-import { validateObjectId } from '../validators/common.validator.js';
 
 const router = express.Router();
 

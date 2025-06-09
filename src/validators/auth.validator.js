@@ -1,4 +1,4 @@
-import { body, query, param } from 'express-validator';
+import { body, query } from 'express-validator';
 import { customValidators } from '../middlewares/validator.middleware.js';
 
 export const registerValidator = [

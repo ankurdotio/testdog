@@ -22,4 +22,11 @@ const _config = {
   },
 };
 
-export default Object.freeze(_config);
+let finalConfig;
+if (process.env.NODE_ENV === 'testing') {
+  finalConfig = _config; // Don't freeze in testing mode
+} else {
+  finalConfig = Object.freeze(_config);
+}
+
+export default finalConfig;

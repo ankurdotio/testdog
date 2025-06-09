@@ -4,8 +4,23 @@
 
 ```
 testdog/
-├── .env
+├── .gitignore
 ├── .prettierrc
+├── babel.config.js
+├── coverage/
+│   └── lcov-report/
+│       └── src/
+│           ├── config/
+│           ├── constants/
+│           ├── controllers/
+│           ├── dao/
+│           ├── loggers/
+│           ├── middlewares/
+│           ├── models/
+│           ├── routes/
+│           ├── services/
+│           ├── utils/
+│           └── validators/
 ├── eslint.config.js
 ├── logs/
 ├── package-lock.json
@@ -55,22 +70,11 @@ testdog/
 
 ## File Contents
 
-### `.env`
+### `.gitignore`
 
 ```
-PORT=3000
-DB_URL=mongodb://localhost:27017/freeapi
-JWT_SECRET=iske_alawa_kuch_bhi_puch_lo
-GOOGLE_CLIENT_ID=1051463403503-ak2e7ugobu9ilc0ik19i84rikpeq7qhq.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
-GMAIL_USER=ankurprajapati@sheryians.com
-GOOGLE_REFRESH_TOKEN=1//04SkybLp7YKDQCgYIARAAGAQSNwF-L9IrnpCj4a-CINRKL0Nym1-P1KiNrmYNGo4Cnh7ZU8Fv8-UCU0oGtBOrr5qbWRTqeGRQjYw
-GOOGLE_CALLBACK_URL=http://localhost:3000/api/v1/auth/google/callback
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-REDIS_PASSWORD=
-REDIS_USERNAME=
-REDIS_DB=0
+/.env
+/node_modules
 ```
 
 ### `.prettierrc`
@@ -81,6 +85,14 @@ REDIS_DB=0
   "singleQuote": true,
   "trailingComma": "es5"
 }
+```
+
+### `babel.config.js`
+
+```js
+export default {
+  presets: [['@babel/preset-env', { targets: { node: 'current' } }]],
+};
 ```
 
 ### `eslint.config.js`
@@ -128,7 +140,8 @@ export default [
   "scripts": {
     "dev": "nodemon server.js",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "keywords": [],
   "author": "",
@@ -155,6 +168,8 @@ export default [
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.27.4",
+    "@babel/preset-env": "^7.27.2",
     "@eslint/js": "^9.28.0",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
@@ -2277,7 +2292,6 @@ export const validateObjectId = (idField = 'id') => [
 
 ```js
 import { body } from 'express-validator';
-import { customValidators } from '../middlewares/validator.middleware.js';
 
 export const updateUserValidator = [
   body('username')
@@ -2301,18 +2315,8 @@ export const updateUserValidator = [
     .isURL()
     .withMessage('Avatar must be a valid URL')
     .trim(),
-  body('password')
-    .optional()
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters')
-    .custom((value) => {
-      if (value && !customValidators.isStrongPassword(value)) {
-        throw new Error(
-          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
-        );
-      }
-      return true;
-    }),
+  // Password field removed as it cannot be updated through this route
+  // Use dedicated password reset functionality instead
 ];
 ```
 

@@ -47,7 +47,7 @@ const consoleFormat = winston.format.combine(
 
 // Create the logger with only console transport
 const logger = winston.createLogger({
-  level: 'debug',
+  level: getLevel(),
   levels,
   transports: [
     // Console transport only
