@@ -4,7 +4,6 @@ import app from '../app.js'; // Your main Express app
 import User from '../models/user.model.js'; // Your User model
 import redisService from '../config/redis.js'; // Your Redis service
 
-
 describe('Auth API Routes', () => {
   // Test for User Registration
   describe('POST /api/v1/auth/register', () => {
@@ -31,9 +30,12 @@ describe('Auth API Routes', () => {
 
       // Verify cookies are set
       const cookies = response.headers['set-cookie'];
-      expect(cookies.some(cookie => cookie.startsWith('accessToken='))).toBe(true);
-      expect(cookies.some(cookie => cookie.startsWith('refreshToken='))).toBe(true);
-
+      expect(cookies.some((cookie) => cookie.startsWith('accessToken='))).toBe(
+        true
+      );
+      expect(cookies.some((cookie) => cookie.startsWith('refreshToken='))).toBe(
+        true
+      );
 
       // Verify user in database
       const dbUser = await User.findOne({ email: userData.email });
@@ -71,22 +73,22 @@ describe('Auth API Routes', () => {
     });
 
     it('should return 422 for invalid registration data (e.g., missing email)', async () => {
-        const userData = {
-            username: 'testuserInvalid',
-            // email is missing
-            password: 'Password123!',
-            name: 'Test User Invalid'
-        };
+      const userData = {
+        username: 'testuserInvalid',
+        // email is missing
+        password: 'Password123!',
+        name: 'Test User Invalid',
+      };
 
-        const response = await request(app)
-            .post('/api/v1/auth/register')
-            .send(userData)
-            .expect('Content-Type', /json/)
-            .expect(422); // Validation error
+      const response = await request(app)
+        .post('/api/v1/auth/register')
+        .send(userData)
+        .expect('Content-Type', /json/)
+        .expect(422); // Validation error
 
-        expect(response.body.success).toBe(false);
-        expect(response.body.message).toBe('Validation failed');
-        expect(response.body.errors.email).toBe('Email is required');
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Validation failed');
+      expect(response.body.errors.email).toBe('Email is required');
     });
   });
 
@@ -121,9 +123,12 @@ describe('Auth API Routes', () => {
 
       // Verify cookies
       const cookies = response.headers['set-cookie'];
-      expect(cookies.some(cookie => cookie.startsWith('accessToken='))).toBe(true);
-      expect(cookies.some(cookie => cookie.startsWith('refreshToken='))).toBe(true);
-
+      expect(cookies.some((cookie) => cookie.startsWith('accessToken='))).toBe(
+        true
+      );
+      expect(cookies.some((cookie) => cookie.startsWith('refreshToken='))).toBe(
+        true
+      );
 
       // Verify refresh token in Redis
       const dbUser = await User.findOne({ email: loginCredentials.email });
@@ -143,26 +148,26 @@ describe('Auth API Routes', () => {
     });
 
     it('should return 401 for non-existent user', async () => {
-        const response = await request(app)
-            .post('/api/v1/auth/login')
-            .send({ email: 'nonexistent@example.com', password: 'Password123!'})
-            .expect('Content-Type', /json/)
-            .expect(401);
+      const response = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'nonexistent@example.com', password: 'Password123!' })
+        .expect('Content-Type', /json/)
+        .expect(401);
 
-        expect(response.body.success).toBe(false);
-        expect(response.body.message).toBe('Invalid email or password.');
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Invalid email or password.');
     });
 
     it('should return 422 for invalid login data (e.g., invalid email format)', async () => {
-        const response = await request(app)
-            .post('/api/v1/auth/login')
-            .send({ email: 'notanemail', password: 'Password123!'})
-            .expect('Content-Type', /json/)
-            .expect(422);
+      const response = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'notanemail', password: 'Password123!' })
+        .expect('Content-Type', /json/)
+        .expect(422);
 
-        expect(response.body.success).toBe(false);
-        expect(response.body.message).toBe('Validation failed');
-        expect(response.body.errors.email).toBe('Please provide a valid email');
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Validation failed');
+      expect(response.body.errors.email).toBe('Please provide a valid email');
     });
   });
 
@@ -208,7 +213,9 @@ describe('Auth API Routes', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('You are not logged in. Please log in to get access.');
+      expect(response.body.message).toBe(
+        'You are not logged in. Please log in to get access.'
+      );
     });
   });
 });

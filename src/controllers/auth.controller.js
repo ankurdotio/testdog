@@ -232,7 +232,6 @@ class AuthController {
     const userId = req.user._id;
     await redisService.del(`refreshToken:${userId}`);
 
-
     res.status(200).json({
       success: true,
       message: 'Logged out successfully',

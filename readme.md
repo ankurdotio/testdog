@@ -1,6 +1,6 @@
 # Testdog API Server
 
-Testdog is an open-source, community-powered API server offering a growing collection of free-to-use APIs for your projects. Whether you're building a side project, a portfolio piece, or an MVP  feel free to plug in and go!
+Testdog is an open-source, community-powered API server offering a growing collection of free-to-use APIs for your projects. Whether you're building a side project, a portfolio piece, or an MVP feel free to plug in and go!
 
 ---
 
@@ -20,14 +20,14 @@ All APIs provided by Testdog are **completely free**. You can integrate them int
 
 Testdog is **open-source**, and we're always looking for contributors!
 
-###  How to Contribute
+### How to Contribute
 
 1. Fork the repository
 2. Create a feature branch
 3. Add your API or improve existing ones
 4. Raise a Pull Request (PR)
 
-If your PR aligns with our development direction and passes checks  we’ll merge it. Simple as that.
+If your PR aligns with our development direction and passes checks we’ll merge it. Simple as that.
 
 > Please make sure to follow best practices and write clean, modular code.
 
@@ -44,6 +44,6 @@ If you encounter any problems or have suggestions:
 
 ## Note
 
-Testdog is powered entirely by its contributors. The addition of any new API depends on community support and availability. So if something’s missing  feel free to build it!
+Testdog is powered entirely by its contributors. The addition of any new API depends on community support and availability. So if something’s missing feel free to build it!
 
 ---

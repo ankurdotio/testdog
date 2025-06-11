@@ -6,7 +6,8 @@ import config from '../config/config.js';
  * Global error handling middleware
  * Handles errors passed from controllers or thrown in the application
  */
-const errorHandler = (err, req, res, next) => {// eslint-disable-line no-unused-vars
+const errorHandler = (err, req, res, next) => {
+  // eslint-disable-line no-unused-vars
   let error = { ...err };
   error.message = err.message;
 
