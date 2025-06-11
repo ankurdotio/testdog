@@ -47,13 +47,3 @@ If you encounter any problems or have suggestions:
 Testdog is powered entirely by its contributors. The addition of any new API depends on community support and availability. So if something’s missing  feel free to build it!
 
 ---
-
-## License
-
-MIT License  free to use, modify, and distribute.
-
----
-
-## Star This Project
-
-If you find this useful, consider giving it a on GitHub to help it reach more developers like you!
