@@ -34,7 +34,7 @@ jobs:
 
           aws ecs update-service \
             --cluster testdog-cluster \
-            --service testdog-api-service \
+            --service testdog-api \
             --force-new-deployment \
             --region ap-south-1 \
             --task-definition testdog-api

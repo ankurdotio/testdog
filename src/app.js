@@ -7,6 +7,7 @@ import passport from 'passport';
 import morganLogger from './loggers/morgan.logger.js';
 import './config/passport.js'; // Ensure passport strategies are loaded
 import errorHandler from './middlewares/errorHandler.js';
+import config from './config/config.js';
 
 const app = express();
 
