@@ -1,0 +1,44 @@
+# .dockerignore
+
+# Git files
+.git
+.gitignore
+
+# Node dependencies
+node_modules
+
+# Build output  
+dist
+*.tsbuildinfo
+
+# Environment files
+.env
+*.env.*
+!*.env.example
+
+# Log files
+*.log
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor/OS files
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Thumbs.db
+.DS_Store
+
+# Keys (should be injected as secrets/env vars in production)
+*.key
+*.pem
+
+# Development specific files
+nodemon.json
