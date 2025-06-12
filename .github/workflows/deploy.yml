@@ -27,7 +27,7 @@ jobs:
       - name: Build and Push Docker image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: 329599656829.dkr.ecr.us-east-1.amazonaws.com/testdog
+          ECR_REPOSITORY: 329599656829.dkr.ecr.us-east-1.amazonaws.com
         run: |
           IMAGE_TAG=latest
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
