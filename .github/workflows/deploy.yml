@@ -25,18 +25,16 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and Push Docker image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: 329599656829.dkr.ecr.us-east-1.amazonaws.com
         run: |
-          IMAGE_TAG=latest
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "deploying TestApp to AWS ECS"
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 329599656829.dkr.ecr.us-east-1.amazonaws.com
+          docker build -t testdog .
+          docker tag testdog:latest 329599656829.dkr.ecr.us-east-1.amazonaws.com/testdog:latest
+          docker push 329599656829.dkr.ecr.us-east-1.amazonaws.com/testdog:latest
 
-      - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ecs-task-def.json
-          service: testdog-api-service-6thpdy7g
-          cluster: testdog
-          wait-for-service-stability: true
+          aws ecs update-service \
+            --cluster testdog \
+            --service testdog-api-service-6thpdy7g \
+            --force-new-deployment \
+            --region us-east-1 \
+            --task-definition testdog-api
