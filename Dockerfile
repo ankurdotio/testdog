@@ -7,6 +7,9 @@ WORKDIR /app
 # 3. Copy package files first to leverage Docker cache
 COPY package*.json ./
 
+
+ENV NODE_ENV=production
+
 # 4. Install only production dependencies
 RUN npm ci --omit=dev
 
@@ -20,4 +23,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # 8. Default command to run the app
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

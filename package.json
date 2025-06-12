@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "NODE_ENV=testing jest",
-    "prepare": "husky install"
+    "prepare": "test \"$NODE_ENV\" != \"production\" && husky install || exit 0",
+    "start": "NODE_ENV=production node server.js"
   },
   "keywords": [],
   "author": "",
