@@ -27,14 +27,14 @@ jobs:
       - name: Build and Push Docker image to ECR
         run: |
           echo "deploying TestApp to AWS ECS"
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 329599656829.dkr.ecr.us-east-1.amazonaws.com
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 329599656829.dkr.ecr.ap-south-1.amazonaws.com
           docker build -t testdog .
-          docker tag testdog:latest 329599656829.dkr.ecr.us-east-1.amazonaws.com/testdog:latest
-          docker push 329599656829.dkr.ecr.us-east-1.amazonaws.com/testdog:latest
+          docker tag testdog:latest 329599656829.dkr.ecr.ap-south-1.amazonaws.com/testdog:latest
+          docker push 329599656829.dkr.ecr.ap-south-1.amazonaws.com/testdog:latest
 
           aws ecs update-service \
-            --cluster testdog \
-            --service testdog-api-service-6thpdy7g \
+            --cluster testdog-cluster \
+            --service testdog-api-service \
             --force-new-deployment \
-            --region us-east-1 \
+            --region ap-south-1 \
             --task-definition testdog-api
