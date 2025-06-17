@@ -62,6 +62,15 @@ class UserDAO {
   async deleteUserById(userId) {
     return await User.findByIdAndDelete(userId);
   }
+
+  /**
+   * Get a random user from the database.
+   * @returns {Promise<Object|null>} - Random user document or null if no users exist.
+   */
+  async getRandomUser() {
+    const user = await User.aggregate([{ $sample: { size: 1 } }]);
+    return user.length > 0 ? user[0] : null;
+  }
 }
 
 export default new UserDAO();

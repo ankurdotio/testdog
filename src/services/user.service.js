@@ -239,6 +239,16 @@ class UserService {
       throw new AppError('Invalid or expired verification token.', 401);
     }
   }
+
+
+  /**
+   * Get a random user from the database.
+   * @returns {Promise<Object|null>} - Random user or null if no users exist
+   */
+  async getRandomUser() {
+    const user = await userDAO.getRandomUser();
+    return user;
+  }
 }
 
 export default new UserService();

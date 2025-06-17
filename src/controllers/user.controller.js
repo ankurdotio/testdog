@@ -16,6 +16,21 @@ class UserController {
     }
     res.status(200).json({ success: true, data: user });
   });
+
+  /**
+   * Get a random user.
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   */
+  getRandomUser = asyncHandler(async (req, res) => {
+    const user = await userServices.getRandomUser();
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'No users found' });
+    }
+    res.status(200).json({ success: true, data: user });
+  });
 }
 
 export default new UserController();

@@ -4,6 +4,10 @@ import authController from '../controllers/auth.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import {
+  registerRateLimiter,
+  authRateLimiter,
+} from '../middlewares/rateLimiter.middleware.js';
+import {
   registerValidator,
   loginValidator,
   verifyEmailValidator,
@@ -12,10 +16,16 @@ import {
 
 const router = express.Router();
 
+router.use(authRateLimiter); // Apply general auth rate limiting to all routes
+
 // Authentication routes
 router
   .route('/register')
-  .post(validate(registerValidator), authController.register);
+  .post(
+    registerRateLimiter,
+    validate(registerValidator),
+    authController.register
+  );
 router.route('/login').post(validate(loginValidator), authController.login);
 router.route('/logout').get(protect, authController.logout);
 

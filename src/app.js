@@ -1,13 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import morganLogger from './loggers/morgan.logger.js';
 import './config/passport.js'; // Ensure passport strategies are loaded
 import errorHandler from './middlewares/errorHandler.js';
 import config from './config/config.js';
+import { generalRateLimiter } from './middlewares/rateLimiter.middleware.js';
 
 const app = express();
 
@@ -22,14 +22,9 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true, limit: '100kb' })); // Limit URL-encoded body size to 100KB
 app.use(cookieParser());
+
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
-app.use(limiter);
+app.use(generalRateLimiter);
 app.use(passport.initialize());
 
 // Routes
@@ -45,6 +40,7 @@ app.get('/', (req, res) => {
     status: 'success',
     message: 'Welcome to the TestDog API',
     environment: config.NODE_ENV,
+    documentation: 'docs.testdog.in',
   });
 });
 

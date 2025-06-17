@@ -1,0 +1,180 @@
+import rateLimit from 'express-rate-limit';
+import RedisStore from 'rate-limit-redis';
+import redisService from '../config/redis.js';
+import logger from '../loggers/winston.logger.js';
+
+/**
+ * Create Redis store for rate limiter
+ * @param {string} prefix - Redis key prefix
+ * @returns {RedisStore|undefined} Redis store instance or undefined if Redis is not available
+ */
+const createRedisStore = (prefix) => {
+  try {
+    // Check if Redis client is available and connected
+    if (redisService.client && redisService.isConnected()) {
+      return new RedisStore({
+        sendCommand: (...args) => redisService.client.call(...args),
+        prefix: prefix,
+      });
+    }
+    return undefined;
+  } catch (error) {
+    logger.warn(`Redis store creation failed: ${error.message}`);
+    return undefined;
+  }
+};
+
+/**
+ * Rate limiter factory that creates rate limiters with Redis or memory store
+ */
+const createRateLimiterWithFallback = (options) => {
+  return (req, res, next) => {
+    // Try to create Redis store on first request
+    if (!options._store) {
+      const redisStore = createRedisStore(options.storePrefix);
+      if (redisStore) {
+        logger.info(
+          `Using Redis store for rate limiting: ${options.storePrefix}`
+        );
+        options._store = redisStore;
+      } else {
+        logger.warn(
+          `Using memory store for rate limiting: ${options.storePrefix}`
+        );
+        options._store = undefined; // Will use default memory store
+      }
+    }
+
+    // Create rate limiter with the determined store
+    const limiter = rateLimit({
+      ...options,
+      store: options._store,
+    });
+
+    return limiter(req, res, next);
+  };
+};
+
+/**
+ * Rate limiter for registration route
+ * Limits requests to 5 per minute per IP address
+ */
+export const registerRateLimiter = createRateLimiterWithFallback({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // 5 requests per minute per IP 
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  storePrefix: 'rl:register:', // Redis key prefix for registration rate limiting
+
+  // Custom message when rate limit is exceeded
+  message: {
+    status: 'error',
+    statusCode: 429,
+    message:
+      'Too many registration attempts from this IP, please try again in a minute.',
+    details: {
+      retryAfter: '60 seconds',
+      maxRequests: 5,
+      windowMs: 60000,
+    },
+  },
+
+  // Custom handler for rate limit exceeded
+  handler: (req, res) => {
+    res.status(429).json({
+      status: 'error',
+      statusCode: 429,
+      message:
+        'Too many registration attempts from this IP, please try again in a minute.',
+      details: {
+        retryAfter: '60 seconds',
+        maxRequests: 5,
+        windowMs: 60000,
+        ip: req.ip,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  },
+
+  
+});
+
+/**
+ * General authentication rate limiter for other auth routes
+ * More lenient than registration rate limiter
+ */
+export const authRateLimiter = createRateLimiterWithFallback({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 requests per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  storePrefix: 'rl:auth:', // Redis key prefix for general auth rate limiting
+
+  message: {
+    status: 'error',
+    statusCode: 429,
+    message:
+      'Too many authentication attempts from this IP, please try again later.',
+    details: {
+      retryAfter: '15 minutes',
+      maxRequests: 20,
+      windowMs: 900000,
+    },
+  },
+
+  handler: (req, res) => {
+    res.status(429).json({
+      status: 'error',
+      statusCode: 429,
+      message:
+        'Too many authentication attempts from this IP, please try again later.',
+      details: {
+        retryAfter: '15 minutes',
+        maxRequests: 20,
+        windowMs: 900000,
+        ip: req.ip,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  },
+});
+
+export const generalRateLimiter = createRateLimiterWithFallback({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  storePrefix: 'rl:general:', // Redis key prefix for general rate limiting
+
+  message: {
+    status: 'error',
+    statusCode: 429,
+    message: 'Too many requests from this IP, please try again later.',
+    details: {
+      retryAfter: '15 minutes',
+      maxRequests: 100,
+      windowMs: 900000,
+    },
+  },
+
+  handler: (req, res) => {
+    res.status(429).json({
+      status: 'error',
+      statusCode: 429,
+      message: 'Too many requests from this IP, please try again later.',
+      details: {
+        retryAfter: '15 minutes',
+        maxRequests: 100,
+        windowMs: 900000,
+        ip: req.ip,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  },
+});
+
+export default {
+  registerRateLimiter,
+  authRateLimiter,
+  generalRateLimiter,
+};

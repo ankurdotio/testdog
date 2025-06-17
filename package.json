@@ -30,9 +30,11 @@
     "libphonenumber-js": "^1.12.9",
     "mongoose": "^8.15.1",
     "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.3",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "rate-limit-redis": "^4.2.1",
     "winston": "^3.17.0"
   },
   "devDependencies": {
