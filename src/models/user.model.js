@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: {
       type: Boolean,
       default: function () {
-        return !this.googleId; // Email verification not required for Google users
+        return Boolean(this.googleId); // Email verification not required for Google users
       },
       select: false, // Don't return this field by default
     },
@@ -75,14 +75,9 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre('save', async function (next) {
+  if (!this.password) return next();
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
-
-userSchema.pre('save', function (next) {
-  if (!this.isModified('password') || this.isNew) return next();
-  this.passwordChangedAt = Date.now() - 1000;
   next();
 });
 

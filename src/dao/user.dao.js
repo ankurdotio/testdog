@@ -24,6 +24,15 @@ class UserDAO {
   }
 
   /**
+   * Find a user by Google ID.
+   * @param {string} googleId - User's Google ID.
+   * @returns {Promise<Object|null>} - Found user document or null.
+   */
+  async findByGoogleId(googleId) {
+    return await User.findOne({ googleId });
+  }
+
+  /**
    * Find a user by ID.
    * @param {string} userId - MongoDB user ID.
    * @returns {Promise<Object|null>} - Found user document or null.
@@ -38,7 +47,9 @@ class UserDAO {
    * @returns {Promise<Object|null>} - Found user document or null.
    */
   async findByUsername(username, selectFields = '') {
-    return await User.findOne({ username }).select(selectFields);
+    return await User.findOne({ username, username: { $ne: null } }).select(
+      selectFields
+    );
   }
 
   /**

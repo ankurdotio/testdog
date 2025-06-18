@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import gravatar from 'gravatar';
 import userDAO from '../dao/user.dao.js';
 import AppError from '../utils/appError.js'; // Optional: custom error handler
 import config from '../config/config.js';
@@ -12,7 +13,7 @@ import logger from '../loggers/winston.logger.js';
 class UserService {
   /**
    * Register a new user after checking for existing email/username.
-   * @param {Object} userData - { username, email, password }
+   * @param {Object} userData - { googleId?, username, email, password,name?, avatar? }
    * @returns {Promise<Object>} - Newly created user (without password).
    */
   async registerUser(userData) {
@@ -27,11 +28,16 @@ class UserService {
     }
 
     const newUser = await userDAO.createUser({
+      googleId: userData.googleId || null, // Optional for Google users
       username: userData.username,
       email: userData.email,
       password: userData.password,
       name: userData.name || '',
+      avatar:
+        userData.avatar ||
+        gravatar.url(userData.email, { s: '100', r: 'x', d: 'retro' }, true),
     });
+
     newUser.password = undefined;
     return newUser;
   }
@@ -239,7 +245,6 @@ class UserService {
       throw new AppError('Invalid or expired verification token.', 401);
     }
   }
-
 
   /**
    * Get a random user from the database.

@@ -1,6 +1,7 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import User from '../models/user.model.js';
+import userService from '../services/user.service.js';
+import userDao from '../dao/user.dao.js';
 import config from './config.js';
 import logger from '../loggers/winston.logger.js';
 
@@ -16,22 +17,22 @@ passport.use(
         logger.debug('Google profile:', JSON.stringify(profile));
 
         // Find user by googleId or email
-        let user = await User.findOne({ googleId: profile.id });
+        let user = await userDao.findByGoogleId(profile.id);
 
         if (!user && profile.emails && profile.emails.length > 0) {
           // If not found by googleId, try to find by email
-          user = await User.findOne({ email: profile.emails[0].value });
+          user = await userDao.findByEmail(profile.emails[0].value);
 
           if (user) {
             // If found by email, link Google account
             user.googleId = profile.id;
-            await user.save({ validateBeforeSave: false });
+            await user.save();
           }
         }
 
         if (!user) {
           // Create a new user if not found
-          user = await User.create({
+          user = await userService.registerUser({
             googleId: profile.id,
             email: profile.emails[0].value,
             name: profile.displayName,
@@ -41,12 +42,6 @@ passport.use(
                 : undefined,
           });
           logger.info(`New user created via Google: ${user.email}`);
-        }
-
-        // Always update the Google access token
-        if (accessToken) {
-          user.googleAccessToken = accessToken;
-          await user.save({ validateBeforeSave: false });
         }
 
         return done(null, user);
