@@ -30,9 +30,11 @@ app.use(passport.initialize());
 // Routes
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
+import productRoutes from './routes/product.routes.js';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/store/products', productRoutes);
 
 // // Simple route for checking server status
 app.get('/', (req, res) => {

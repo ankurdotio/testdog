@@ -38,7 +38,16 @@ class UserDAO {
    * @returns {Promise<Object|null>} - Found user document or null.
    */
   async findById(userId, selectFields = '') {
-    return await User.findById(userId).select(selectFields);
+    if (selectFields) {
+      // Add '+' prefix to include fields that have select: false in schema
+      const fieldsWithPrefix = selectFields
+        .split(' ')
+        .map((field) => (field.trim() ? `+${field.trim()}` : ''))
+        .filter(Boolean)
+        .join(' ');
+      return await User.findById(userId).select(fieldsWithPrefix);
+    }
+    return await User.findById(userId);
   }
 
   /**

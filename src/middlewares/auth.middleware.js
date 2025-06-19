@@ -32,7 +32,7 @@ export const protect = async (req, res, next) => {
     const decoded = await promisify(jwt.verify)(token, config.JWT_SECRET);
 
     // 3) Check if user still exists
-    const currentUser = await userService.getMe(decoded.id);
+    const currentUser = await userService.getMe(decoded.id, 'role');
 
     if (!currentUser) {
       return next(

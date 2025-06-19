@@ -33,6 +33,7 @@ class UserService {
       email: userData.email,
       password: userData.password,
       name: userData.name || '',
+      role: userData.role || 'user', // Default role
       avatar:
         userData.avatar ||
         gravatar.url(userData.email, { s: '100', r: 'x', d: 'retro' }, true),
@@ -64,8 +65,8 @@ class UserService {
    * @param {string} userId - MongoDB user ID from token
    * @returns {Promise<Object|null>} - User details or null
    */
-  async getMe(userId) {
-    return await userDAO.findById(userId);
+  async getMe(userId, selectFields = '') {
+    return await userDAO.findById(userId, selectFields);
   }
 
   /**
