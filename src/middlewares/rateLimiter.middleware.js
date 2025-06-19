@@ -61,7 +61,7 @@ const createRateLimiterWithFallback = (options) => {
  */
 export const registerRateLimiter = createRateLimiterWithFallback({
   windowMs: 60 * 1000, // 1 minute
-  max: 5, // 5 requests per minute per IP 
+  max: 5, // 5 requests per minute per IP
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   storePrefix: 'rl:register:', // Redis key prefix for registration rate limiting
@@ -95,8 +95,6 @@ export const registerRateLimiter = createRateLimiterWithFallback({
       },
     });
   },
-
-  
 });
 
 /**

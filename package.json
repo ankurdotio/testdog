@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon server.js",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "test": "NODE_ENV=testing jest",
     "prepare": "test \"$NODE_ENV\" != \"production\" && husky install || exit 0",
