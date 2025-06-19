@@ -64,7 +64,7 @@ class ProductDAO {
    * @param {number} limit - Number of products per page.
    * @returns {Promise<Array>} - Array of found product documents.
    */
-  async findAllProducts(page = 0, limit = 19) {
+  async findAllProducts(page = 0, limit = 20) {
     const skip = page * limit;
     return await Product.find().skip(skip).limit(limit);
   }
@@ -75,7 +75,7 @@ class ProductDAO {
    * @param {number} limit - Number of products per page.
    * @returns {Promise<Array>} - Array of found product documents.
    */
-  async fuzzySearch(keyword, limit = 19) {
+  async fuzzySearch(keyword, limit = 20) {
     const results = await Product.aggregate([
       {
         $search: {
