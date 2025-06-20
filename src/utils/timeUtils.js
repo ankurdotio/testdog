@@ -1,3 +1,5 @@
+import SendResponse from "./SendResponse";
+
 /**
  * Convert a time string like '30d', '1h', '15m' to seconds
  * @param {string} timeString - Time string in format like '30d', '1h', '15m'
@@ -29,3 +31,4 @@ export function timeStringToSeconds(timeString) {
       return value;
   }
 }
+
