@@ -7,7 +7,6 @@ import config from '../config/config.js';
  * Handles errors passed from controllers or thrown in the application
  */
 const errorHandler = (err, req, res, next) => {
-   
   let error = { ...err };
   error.message = err.message;
 

@@ -7,12 +7,11 @@ import {
   updateCartItemValidator,
   removeCartItemValidator,
 } from '../validators/cart.validator.js';
-import { generalRateLimiter } from '../middlewares/rateLimiter.middleware.js';
+
 
 const router = express.Router();
 
-// Apply rate limiting to all cart routes
-router.use(generalRateLimiter);
+
 
 // All cart routes require authentication
 router.use(protect);

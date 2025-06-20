@@ -1,5 +1,4 @@
 import Product from '../models/product.model.js';
-import logger from '../loggers/winston.logger.js';
 
 /**
  * Data Access Object for Product operations.
@@ -128,37 +127,33 @@ class ProductDAO {
    * @returns {Promise<Array>} Matching products with lightweight projection.
    */
   async autocompleteSearch(keyword, limit = 7) {
-    try {
-      const results = await Product.aggregate([
-        {
-          $search: {
-            index: 'productSearchIndex',
-            autocomplete: {
-              query: keyword,
-              path: 'product_name',
-              fuzzy: {
-                maxEdits: 1,
-                prefixLength: 2,
-              },
+    const results = await Product.aggregate([
+      {
+        $search: {
+          index: 'productSearchIndex',
+          autocomplete: {
+            query: keyword,
+            path: ['product_name'],
+            fuzzy: {
+              maxEdits: 1,
+              prefixLength: 2,
             },
           },
         },
-        {
-          $project: {
-            product_name: 1,
-            score: { $meta: 'searchScore' },
-          },
+      },
+      {
+        $project: {
+          product_name: 1,
+          score: { $meta: 'searchScore' },
         },
-        { $sort: { score: -1 } },
-        { $limit: limit },
-      ]);
+      },
+      { $sort: { score: -1 } },
+      { $limit: limit },
+    ]);
 
+    console.log('Autocomplete search results:', results);
 
-      return results.map((product) => product.product_name);
-    } catch (error) {
-      logger.error('Atlas Search autocomplete error:', error);
-      throw new Error(`Atlas Search autocomplete failed: ${error.message}`);
-    }
+    return results.map((product) => product.product_name);
   }
   /**
    * Get a random product from the database.
@@ -185,32 +180,6 @@ class ProductDAO {
     }).limit(limit);
 
     return results.map((product) => product.product_name);
-  }  /**
-   * Test if Atlas Search index is available and working
-   * @returns {Promise<boolean>} - True if Atlas Search is available
-   */
-  async testAtlasSearchAvailability() {
-    try {
-      await Product.aggregate([
-        {
-          $search: {
-            index: 'productSearchIndex',
-            text: {
-              query: 'test',
-              path: 'product_name',
-            },
-          },
-        },
-        { $limit: 1 },
-        { $project: { _id: 1 } },
-      ]);
-      
-      logger.info('Atlas Search index is available and working');
-      return true;
-    } catch (error) {
-      logger.warn('Atlas Search index not available:', error.message);
-      return false;
-    }
   }
 }
 

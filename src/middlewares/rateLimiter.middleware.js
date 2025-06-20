@@ -171,6 +171,41 @@ export const generalRateLimiter = createRateLimiterWithFallback({
   },
 });
 
+export const productRateLimiter = createRateLimiterWithFallback({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 10, // 10 requests per 10 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  storePrefix: 'rl:product:', // Redis key prefix for product rate limiting
+
+  message: {
+    status: 'error',
+    statusCode: 429,
+    message: 'Too many product requests from this IP, please try again later.',
+    details: {
+      retryAfter: '10 minutes',
+      maxRequests: 10,
+      windowMs: 600000,
+    },
+  },
+
+  handler: (req, res) => {
+    res.status(429).json({
+      status: 'error',
+      statusCode: 429,
+      message:
+        'Too many product requests from this IP, please try again later.',
+      details: {
+        retryAfter: '10 minutes',
+        maxRequests: 10,
+        windowMs: 600000,
+        ip: req.ip,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  },
+});
+
 export default {
   registerRateLimiter,
   authRateLimiter,

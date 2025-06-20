@@ -227,20 +227,11 @@ class ProductService {
       const suggestions = await productDAO.autocompleteSearch(keyword, limit);
       return suggestions;
     } catch (error) {
-      // Check if this is an Atlas Search index issue
-      const isIndexIssue = error.message.includes('index') ||
-        error.message.includes('$search') ||
-        error.message.includes('Atlas Search');
-
-      if (isIndexIssue) {
-        logger.warn(
-          'Atlas Search autocomplete not available, falling back to basic search.',
-          'Please ensure the "productSearchIndex" is created in MongoDB Atlas with autocomplete configuration.'
-        );
-      } else {
-        logger.error('Unexpected error in autocomplete search:', error.message);
-      }
-
+      // Fallback to basic search if Atlas Search is not available
+      logger.warn(
+        'Atlas Search autocomplete not available, falling back to basic search:',
+        error.message
+      );
       const products = await productDAO.findProductsByName(keyword, limit);
       return products;
     }
@@ -253,25 +244,6 @@ class ProductService {
   async getRandomProduct() {
     const product = await productDAO.getRandomProduct();
     return product ? this.sanitizeProductResponse(product) : null;
-  }
-
-  /**
-   * Initialize and check Atlas Search availability
-   * @returns {Promise<boolean>} - True if Atlas Search is available
-   */
-  async initializeAtlasSearch() {
-    try {
-      const isAvailable = await productDAO.testAtlasSearchAvailability();
-      if (isAvailable) {
-        logger.info('Atlas Search is properly configured and available');
-      } else {
-        logger.warn('Atlas Search not available - autocomplete will use fallback search');
-      }
-      return isAvailable;
-    } catch (error) {
-      logger.error('Error checking Atlas Search availability:', error.message);
-      return false;
-    }
   }
 }
 
