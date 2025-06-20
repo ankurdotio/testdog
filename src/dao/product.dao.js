@@ -1,4 +1,5 @@
 import Product from '../models/product.model.js';
+import logger from '../loggers/winston.logger.js';
 
 /**
  * Data Access Object for Product operations.
@@ -100,6 +101,20 @@ class ProductDAO {
         $sort: { score: { $meta: 'textScore' } },
       },
       {
+        $project: {
+          _id: 1,
+          product_name: 1,
+          description: 1,
+          initial_price: 1,
+          final_price: 1,
+          currency: 1,
+          in_stock: 1,
+          color: 1,
+          size: 1,
+          main_image: 1,
+        },
+      },
+      {
         $limit: limit,
       },
     ]);
@@ -113,33 +128,37 @@ class ProductDAO {
    * @returns {Promise<Array>} Matching products with lightweight projection.
    */
   async autocompleteSearch(keyword, limit = 7) {
-    const results = await Product.aggregate([
-      {
-        $search: {
-          index: 'productSearchIndex',
-          autocomplete: {
-            query: keyword,
-            path: ['product_name'],
-            fuzzy: {
-              maxEdits: 1,
-              prefixLength: 2,
+    try {
+      const results = await Product.aggregate([
+        {
+          $search: {
+            index: 'productSearchIndex',
+            autocomplete: {
+              query: keyword,
+              path: 'product_name',
+              fuzzy: {
+                maxEdits: 1,
+                prefixLength: 2,
+              },
             },
           },
         },
-      },
-      {
-        $project: {
-          product_name: 1,
-          final_price: 1,
-          main_image: 1,
-          rating: 1,
-          score: { $meta: 'searchScore' },
+        {
+          $project: {
+            product_name: 1,
+            score: { $meta: 'searchScore' },
+          },
         },
-      },
-      { $sort: { score: -1 } },
-      { $limit: limit },
-    ]);
-    return results;
+        { $sort: { score: -1 } },
+        { $limit: limit },
+      ]);
+
+
+      return results.map((product) => product.product_name);
+    } catch (error) {
+      logger.error('Atlas Search autocomplete error:', error);
+      throw new Error(`Atlas Search autocomplete failed: ${error.message}`);
+    }
   }
   /**
    * Get a random product from the database.
@@ -156,7 +175,7 @@ class ProductDAO {
    * @returns {Promise<Array>} - Search results
    */
   async findProductsByName(keyword, limit = 20) {
-    return await Product.find({
+    const results = await Product.find({
       $or: [
         { product_name: { $regex: keyword, $options: 'i' } },
         { description: { $regex: keyword, $options: 'i' } },
@@ -164,6 +183,34 @@ class ProductDAO {
         { root_category: { $regex: keyword, $options: 'i' } },
       ],
     }).limit(limit);
+
+    return results.map((product) => product.product_name);
+  }  /**
+   * Test if Atlas Search index is available and working
+   * @returns {Promise<boolean>} - True if Atlas Search is available
+   */
+  async testAtlasSearchAvailability() {
+    try {
+      await Product.aggregate([
+        {
+          $search: {
+            index: 'productSearchIndex',
+            text: {
+              query: 'test',
+              path: 'product_name',
+            },
+          },
+        },
+        { $limit: 1 },
+        { $project: { _id: 1 } },
+      ]);
+      
+      logger.info('Atlas Search index is available and working');
+      return true;
+    } catch (error) {
+      logger.warn('Atlas Search index not available:', error.message);
+      return false;
+    }
   }
 }
 
