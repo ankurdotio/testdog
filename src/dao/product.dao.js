@@ -150,9 +150,7 @@ class ProductDAO {
       { $sort: { score: -1 } },
       { $limit: limit },
     ]);
-
-    console.log('Autocomplete search results:', results);
-
+    
     return results.map((product) => product.product_name);
   }
   /**
