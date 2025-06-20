@@ -61,7 +61,6 @@ export const customValidators = {
       const phoneNumber = parsePhoneNumber(value);
       return phoneNumber && phoneNumber.isValid();
     } catch (error) {
-      // eslint-disable-line no-unused-vars
       // If parsing fails, it's not a valid number
       return false;
     }
