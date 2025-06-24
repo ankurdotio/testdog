@@ -1,7 +1,7 @@
 import { request , response } from "express";
 
 class SendResponse {
-    success(res = response, statusCode, data, message) {
+    success(res, statusCode, data, message) {
         return res.status(statusCode).json({
             status: 'success',
             message,
@@ -9,7 +9,7 @@ class SendResponse {
         });
     }
 
-     error(res = response, error, statusCode, message) {
+     error(res, error, statusCode, message) {
         console.error(error);
         return res.status(statusCode).json({
             status: 'error',
