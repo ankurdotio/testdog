@@ -13,4 +13,7 @@ router
 
 router.route('/getrandomuser').get(userController.getRandomUser);
 
+router.route('/all').get(userController.getAllUsers);
+
+
 export default router;

@@ -91,6 +91,18 @@ class UserDAO {
     const user = await User.aggregate([{ $sample: { size: 1 } }]);
     return user.length > 0 ? user[0] : null;
   }
+
+  /**
+   * Get all users with optional field selection.
+   * @param {string} selectFields - Space-separated list of fields to return.
+   * @returns {Promise<Array>} - Array of user documents.
+   */
+  async findAllUsers(selectFields = '') {
+    if (selectFields) {
+      return await User.find().select(selectFields);
+    }
+    return await User.find();
+  }
 }
 
 export default new UserDAO();

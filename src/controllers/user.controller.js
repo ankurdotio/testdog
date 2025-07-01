@@ -31,6 +31,16 @@ class UserController {
     }
     res.status(200).json({ success: true, data: user });
   });
+
+  /**
+   * Get all users.
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   */
+  getAllUsers = asyncHandler(async (req, res) => {
+    const users = await userServices.getAllUsers();
+    res.status(200).json({ success: true, data: users });
+  });
 }
 
 export default new UserController();

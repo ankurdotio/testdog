@@ -255,6 +255,17 @@ class UserService {
     const user = await userDAO.getRandomUser();
     return user;
   }
+
+  /**
+   * Get all users (safe fields only).
+   * @returns {Promise<Array>} - List of user objects
+   */
+  async getAllUsers() {
+  const users = await userDAO.findAllUsers(
+    'username name email avatar role createdAt'
+  );
+  return users;
+}
 }
 
 export default new UserService();
