@@ -33,13 +33,29 @@ class UserController {
   });
 
   /**
-   * Get all users.
-   * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
+   * Get paginated users.
+   * @param {Object} req
+   * @param {Object} res
    */
   getAllUsers = asyncHandler(async (req, res) => {
-    const users = await userServices.getAllUsers();
-    res.status(200).json({ success: true, data: users });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+
+    const { data, total } = await userServices.getAllUsersPaginated(
+      page,
+      limit
+    );
+
+    res.status(200).json({
+      success: true,
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   });
 }
 

@@ -97,11 +97,19 @@ class UserDAO {
    * @param {string} selectFields - Space-separated list of fields to return.
    * @returns {Promise<Array>} - Array of user documents.
    */
-  async findAllUsers(selectFields = '') {
-    if (selectFields) {
-      return await User.find().select(selectFields);
-    }
-    return await User.find();
+  /**
+   * Get paginated list of users.
+   * @param {number} page - Page number
+   * @param {number} limit - Number of users per page
+   * @returns {Promise<Object>} - { data: [], total }
+   */
+  async getAllUsersPaginated(page = 1, limit = 50) {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      User.find().skip(skip).limit(limit),
+      User.countDocuments(),
+    ]);
+    return { data, total };
   }
 }
 

@@ -257,15 +257,15 @@ class UserService {
   }
 
   /**
-   * Get all users (safe fields only).
-   * @returns {Promise<Array>} - List of user objects
+   * Get all users with pagination.
+   * @param {number} page
+   * @param {number} limit
+   * @returns {Promise<Object>} - Paginated users with total count
    */
-  async getAllUsers() {
-  const users = await userDAO.findAllUsers(
-    'username name email avatar role createdAt'
-  );
-  return users;
-}
+  async getAllUsersPaginated(page, limit) {
+    return await userDAO.getAllUsersPaginated(page, limit);
+  }
+
 }
 
 export default new UserService();
