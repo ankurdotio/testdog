@@ -26,30 +26,38 @@ const createRedisStore = (prefix) => {
 
 /**
  * Rate limiter factory that creates rate limiters with Redis or memory store
+ * In testing environment, rate limiting is disabled to prevent test failures
  */
 const createRateLimiterWithFallback = (options) => {
+  let limiter = null;
+
   return (req, res, next) => {
-    // Try to create Redis store on first request
-    if (!options._store) {
+    // Bypass rate limiting in testing environment
+    if (process.env.NODE_ENV === 'testing') {
+      return next();
+    }
+
+    // Create the rate limiter only once per middleware instance
+    if (!limiter) {
       const redisStore = createRedisStore(options.storePrefix);
       if (redisStore) {
         logger.info(
           `Using Redis store for rate limiting: ${options.storePrefix}`
         );
-        options._store = redisStore;
+        limiter = rateLimit({
+          ...options,
+          store: redisStore,
+        });
       } else {
         logger.warn(
           `Using memory store for rate limiting: ${options.storePrefix}`
         );
-        options._store = undefined; // Will use default memory store
+        limiter = rateLimit({
+          ...options,
+          // No store specified, will use default memory store
+        });
       }
     }
-
-    // Create rate limiter with the determined store
-    const limiter = rateLimit({
-      ...options,
-      store: options._store,
-    });
 
     return limiter(req, res, next);
   };

@@ -56,9 +56,9 @@ class UserDAO {
    * @returns {Promise<Object|null>} - Found user document or null.
    */
   async findByUsername(username, selectFields = '') {
-    return await User.findOne({ username, username: { $ne: null } }).select(
-      selectFields
-    );
+    return await User.findOne({
+      $and: [{ username }, { username: { $ne: null } }],
+    }).select(selectFields);
   }
 
   /**

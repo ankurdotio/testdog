@@ -37,6 +37,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "rate-limit-redis": "^4.2.1",
+    "razorpay": "^2.9.6",
     "winston": "^3.17.0"
   },
   "devDependencies": {

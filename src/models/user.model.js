@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema(
     googleId: {
       type: String,
       unique: true,
-      sparse: true, // Allow multiple null values (for non-Google users)
+      sparse: true,
     },
     role: {
       type: String,
@@ -75,6 +75,11 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre('save', async function (next) {
+  // Ensure googleId is never explicitly null
+  if (this.googleId === null) {
+    this.googleId = undefined;
+  }
+
   if (!this.password) return next();
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);

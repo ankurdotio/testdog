@@ -8,10 +8,7 @@ import {
   removeCartItemValidator,
 } from '../validators/cart.validator.js';
 
-
 const router = express.Router();
-
-
 
 // All cart routes require authentication
 router.use(protect);
