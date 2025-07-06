@@ -8,6 +8,7 @@ import {
   getPaymentHistoryValidator,
   requestRefundValidator,
   getPaymentStatsValidator,
+  getPaymentDetailsValidator,
   validate,
 } from '../validators/payment.validator.js';
 
@@ -43,7 +44,12 @@ router.post(
 );
 
 // Get payment details
-router.get('/details/:paymentId', paymentController.getPaymentDetails);
+router.get(
+  '/details/:paymentId',
+  getPaymentDetailsValidator,
+  validate,
+  paymentController.getPaymentDetails
+);
 
 // Get payment history
 router.get(

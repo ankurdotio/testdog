@@ -313,7 +313,7 @@ describe('Payment API Endpoints', () => {
         .get('/api/v1/payments/details/invalid-id')
         .set('Authorization', `Bearer ${authToken}`);
 
-      expect(response.status).toBe(500); // AppError would be converted to 500 by error handler
+      expect(response.status).toBe(400); // Invalid ObjectId format should return 400
     });
   });
 

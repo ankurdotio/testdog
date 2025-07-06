@@ -1,9 +1,9 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import config from '../config/config.js';
-import Payment from '../models/payment.model.js';
-import Product from '../models/product.model.js';
-import Cart from '../models/cart.model.js';
+import paymentDAO from '../dao/payment.dao.js';
+import productDAO from '../dao/product.dao.js';
+import cartDAO from '../dao/cart.dao.js';
 import AppError from '../utils/appError.js';
 import logger from '../loggers/winston.logger.js';
 import { convertCurrency } from '../utils/currencyUtils.js';
@@ -24,11 +24,8 @@ class PaymentService {
   // Create order for cart payment
   async createCartOrder(userId, shippingAddress = null, notes = '') {
     try {
-      // Get user's cart
-      const cart = await Cart.findOne({ user: userId }).populate(
-        'items.product',
-        'product_name final_price in_stock currency'
-      );
+      // Get user's cart using DAO
+      const cart = await cartDAO.findCartByUserId(userId);
 
       if (!cart || cart.items.length === 0) {
         throw new AppError('Cart is empty', 400);
@@ -46,10 +43,11 @@ class PaymentService {
       let totalAmountINR = 0;
       cart.items.forEach((item) => {
         // Convert item price to INR if it's in a different currency
-        const priceInINR =
-          item.product.currency === 'INR'
-            ? item.price
-            : convertCurrency(item.price, item.product.currency, 'INR');
+        const priceInINR = convertCurrency(
+          item.price,
+          item.product.currency,
+          'INR'
+        );
 
         const itemTotalINR = priceInINR * item.quantity;
         totalAmountINR += itemTotalINR;
@@ -88,8 +86,8 @@ class PaymentService {
         };
       });
 
-      // Create payment record
-      const payment = new Payment({
+      // Create payment record using DAO
+      const payment = await paymentDAO.create({
         user: userId,
         orderId: razorpayOrder.receipt,
         razorpayOrderId: razorpayOrder.id,
@@ -101,8 +99,6 @@ class PaymentService {
         shippingAddress,
         notes,
       });
-
-      await payment.save();
 
       return {
         success: true,
@@ -151,8 +147,8 @@ class PaymentService {
     notes = ''
   ) {
     try {
-      // Get product details
-      const product = await Product.findById(productId);
+      // Get product details using DAO
+      const product = await productDAO.findProductById(productId);
       if (!product) {
         throw new AppError('Product not found', 404);
       }
@@ -189,8 +185,8 @@ class PaymentService {
         },
       });
 
-      // Create payment record
-      const payment = new Payment({
+      // Create payment record using DAO
+      const payment = await paymentDAO.create({
         user: userId,
         orderId: razorpayOrder.receipt,
         razorpayOrderId: razorpayOrder.id,
@@ -210,8 +206,6 @@ class PaymentService {
         shippingAddress,
         notes,
       });
-
-      await payment.save();
 
       return {
         success: true,
@@ -270,8 +264,8 @@ class PaymentService {
         throw new AppError('Invalid payment signature', 400);
       }
 
-      // Find payment record
-      const payment = await Payment.findByRazorpayOrderId(razorpayOrderId);
+      // Find payment record using DAO
+      const payment = await paymentDAO.findByRazorpayOrderId(razorpayOrderId);
       if (!payment) {
         throw new AppError('Payment record not found', 404);
       }
@@ -284,21 +278,17 @@ class PaymentService {
       const razorpayPayment =
         await this.razorpay.payments.fetch(razorpayPaymentId);
 
-      // Update payment status
-      await payment.markAsPaid(razorpayPaymentId, razorpaySignature);
+      // Update payment status using DAO
+      await paymentDAO.updateWithPaymentDetails(
+        payment._id,
+        razorpayPaymentId,
+        razorpaySignature,
+        razorpayPayment.method
+      );
 
-      // If it's a cart payment, clear the cart
+      // If it's a cart payment, clear the cart using DAO
       if (payment.orderType === 'cart') {
-        await Cart.findOneAndUpdate(
-          { user: payment.user },
-          {
-            $set: {
-              items: [],
-              totalItems: 0,
-              totalAmount: 0,
-            },
-          }
-        );
+        await cartDAO.clearCart(payment.user);
       }
 
       return {
@@ -320,9 +310,11 @@ class PaymentService {
       };
     } catch (error) {
       // Mark payment as failed if it exists
-      const payment = await Payment.findByRazorpayOrderId(razorpayOrderId);
+      const payment = await paymentDAO.findByRazorpayOrderId(razorpayOrderId);
       if (payment && payment.status !== 'paid') {
-        await payment.markAsFailed(error.message);
+        await paymentDAO.updateStatus(payment._id, 'failed', {
+          failureReason: error.message,
+        });
       }
 
       if (error instanceof AppError) throw error;
@@ -333,13 +325,7 @@ class PaymentService {
   // Get payment details
   async getPaymentDetails(paymentId) {
     try {
-      const payment = await Payment.findById(paymentId)
-        .populate('user', 'name email')
-        .populate('cartItems.product', 'product_name main_image final_price')
-        .populate(
-          'singleProduct.product',
-          'product_name main_image final_price'
-        );
+      const payment = await paymentDAO.findById(paymentId, true);
 
       if (!payment) {
         throw new AppError('Payment not found', 404);
@@ -358,33 +344,14 @@ class PaymentService {
   // Get user's payment history
   async getUserPaymentHistory(userId, status = null, page = 1, limit = 10) {
     try {
-      const skip = (page - 1) * limit;
-
-      const query = { user: userId };
-      if (status) query.status = status;
-
-      const payments = await Payment.find(query)
-        .populate('cartItems.product', 'product_name main_image final_price')
-        .populate(
-          'singleProduct.product',
-          'product_name main_image final_price'
-        )
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
-
-      const totalCount = await Payment.countDocuments(query);
-
-      return {
-        payments,
-        pagination: {
-          currentPage: page,
-          totalPages: Math.ceil(totalCount / limit),
-          totalCount,
-          hasNextPage: page < Math.ceil(totalCount / limit),
-          hasPrevPage: page > 1,
-        },
+      const options = {
+        status,
+        page,
+        limit,
+        sort: { createdAt: -1 },
       };
+
+      return await paymentDAO.getUserPayments(userId, options);
     } catch (error) {
       throw new AppError(
         `Failed to get payment history: ${error.message}`,
@@ -396,7 +363,7 @@ class PaymentService {
   // Refund payment
   async refundPayment(paymentId, refundAmount = null, reason = '') {
     try {
-      const payment = await Payment.findById(paymentId);
+      const payment = await paymentDAO.findById(paymentId);
       if (!payment) {
         throw new AppError('Payment not found', 404);
       }
@@ -424,8 +391,8 @@ class PaymentService {
         }
       );
 
-      // Update payment record
-      await payment.markAsRefunded({
+      // Update payment record using DAO
+      await paymentDAO.addRefundInfo(payment._id, {
         refundId: refund.id,
         amount: refundAmountInPaise,
         reason,
@@ -482,35 +449,50 @@ class PaymentService {
 
   // Handle payment captured webhook
   async handlePaymentCaptured(paymentData) {
-    const payment = await Payment.findByRazorpayOrderId(paymentData.order_id);
+    const payment = await paymentDAO.findByRazorpayOrderId(
+      paymentData.order_id
+    );
     if (payment && payment.status !== 'paid') {
-      payment.webhookData = paymentData;
-      await payment.markAsPaid(paymentData.id, null, paymentData.method);
+      await paymentDAO.updateWithPaymentDetails(
+        payment._id,
+        paymentData.id,
+        null,
+        paymentData.method
+      );
+      // Store webhook data
+      await paymentDAO.updateStatus(payment._id, 'paid', {
+        webhookData: paymentData,
+      });
     }
   }
 
   // Handle payment failed webhook
   async handlePaymentFailed(paymentData) {
-    const payment = await Payment.findByRazorpayOrderId(paymentData.order_id);
+    const payment = await paymentDAO.findByRazorpayOrderId(
+      paymentData.order_id
+    );
     if (payment && payment.status !== 'failed') {
-      payment.webhookData = paymentData;
-      await payment.markAsFailed(
-        `Payment failed: ${paymentData.error_description}`
-      );
+      await paymentDAO.updateStatus(payment._id, 'failed', {
+        failureReason: `Payment failed: ${paymentData.error_description}`,
+        webhookData: paymentData,
+      });
     }
   }
 
   // Handle refund processed webhook
   async handleRefundProcessed(refundData) {
-    const payment = await Payment.findOne({
-      razorpayPaymentId: refundData.payment_id,
-    });
+    const payment = await paymentDAO.findByRazorpayPaymentId(
+      refundData.payment_id
+    );
     if (payment) {
-      payment.webhookData = refundData;
-      await payment.markAsRefunded({
+      await paymentDAO.addRefundInfo(payment._id, {
         refundId: refundData.id,
         amount: refundData.amount,
         reason: 'Webhook notification',
+      });
+      // Store webhook data
+      await paymentDAO.updateStatus(payment._id, 'refunded', {
+        webhookData: refundData,
       });
     }
   }

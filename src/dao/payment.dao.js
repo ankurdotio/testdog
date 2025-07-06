@@ -29,6 +29,10 @@ class PaymentDAO {
 
       return await query;
     } catch (error) {
+      // Handle MongoDB CastError (invalid ObjectId format)
+      if (error.name === 'CastError' || error.name === 'BSONError') {
+        throw new AppError('Invalid payment ID format', 400);
+      }
       throw new AppError(`Failed to find payment: ${error.message}`, 500);
     }
   }
