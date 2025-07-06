@@ -150,7 +150,7 @@ class ProductDAO {
       { $sort: { score: -1 } },
       { $limit: limit },
     ]);
-    
+
     return results.map((product) => product.product_name);
   }
   /**

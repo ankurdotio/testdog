@@ -20,6 +20,10 @@ const _config = {
     username: process.env.REDIS_USERNAME || '',
     db: process.env.REDIS_DB || 0,
   },
+  razorpay: {
+    keyId: process.env.RAZORPAY_KEY_ID || '',
+    keySecret: process.env.RAZORPAY_KEY_SECRET || '',
+  },
 };
 
 let finalConfig;
