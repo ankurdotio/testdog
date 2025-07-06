@@ -405,9 +405,12 @@ class PaymentService {
         throw new AppError('Payment is not eligible for refund', 400);
       }
 
-      const refundAmountInPaise = refundAmount
-        ? Math.round(refundAmount * 100)
-        : payment.amount;
+      const refundAmountInPaise =
+        refundAmount &&
+        refundAmount > 0 &&
+        Math.round(refundAmount * 100) <= payment.amount
+          ? Math.round(refundAmount * 100)
+          : payment.amount;
 
       // Create refund in Razorpay
       const refund = await this.razorpay.payments.refund(
