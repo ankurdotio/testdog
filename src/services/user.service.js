@@ -262,10 +262,56 @@ class UserService {
    * @param {number} limit
    * @returns {Promise<Object>} - Paginated users with total count
    */
-  async getAllUsersPaginated(page, limit) {
-    return await userDAO.getAllUsersPaginated(page, limit);
-  }
 
+  async getAllUsersPaginated(rawPage, rawLimit) {
+    const MAX_LIMIT = 5;
+    let page = parseInt(rawPage);
+    let limit = parseInt(rawLimit);
+
+    // Validate page
+    if (!page || isNaN(page) || page <= 0) {
+      return {
+        success: false,
+        message: `Page must be a positive number starting from 1.`,
+      };
+    }
+
+    // Validate limit
+    if (!limit || isNaN(limit) || limit <= 0) {
+      return {
+        success: false,
+        message: `Limit must be a positive number between 1 and ${MAX_LIMIT}.`,
+      };
+    }
+
+    let responseMessage;
+    if (limit > MAX_LIMIT) {
+      limit = MAX_LIMIT;
+      responseMessage = `Limit capped to ${MAX_LIMIT}. You requested ${rawLimit}.`;
+    }
+
+    const { data, total } = await userDAO.getAllUsersPaginated(page, limit);
+    const totalPages = Math.ceil(total / limit);
+
+    if (page > totalPages && total > 0) {
+      return {
+        success: false,
+        message: `Only ${totalPages} page(s) available. You requested page ${page}.`,
+      };
+    }
+
+    return {
+      success: true,
+      message: responseMessage,
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+      },
+    };
+  }
 }
 
 export default new UserService();

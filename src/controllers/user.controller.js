@@ -33,66 +33,34 @@ class UserController {
   });
 
   /**
-   * Get paginated users.
-   * @param {Object} req
-   * @param {Object} res
-   */
+ * Get paginated users.
+ * Handles query parameters: `page`, `limit`
+ * Delegates pagination, validation, and capping logic to the service layer.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
   getAllUsers = asyncHandler(async (req, res) => {
-    const MAX_LIMIT = 5;
-
-    // Parse values safely
     const rawPage = req.query.page;
     const rawLimit = req.query.limit;
 
-    let page = parseInt(rawPage);
-    let limit = parseInt(rawLimit);
+    const result = await userServices.getAllUsersPaginated(rawPage, rawLimit);
 
-    // Page validation (before using it)
-    if (!page || isNaN(page) || page <= 0) {
-      return res.status(400).json({
+    // In case of validation failure, service will return status and message
+    if (!result.success) {
+      return res.status(result.statusCode || 400).json({
         success: false,
-        message: `Page must be a positive number starting from 1.`,
+        message: result.message,
       });
     }
 
-    // Limit validation
-    if (!limit || isNaN(limit) || limit <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Limit must be a positive number between 1 and ${MAX_LIMIT}.`,
-      });
-    }
-
-    let responseMessage;
-    if (limit > MAX_LIMIT) {
-      limit = MAX_LIMIT;
-      res.set('X-Limit-Adjusted', true);
-      responseMessage = `Limit capped to ${MAX_LIMIT}. You requested ${rawLimit}.`;
-    }
-
-    const { data, total } = await userServices.getAllUsersPaginated(
-      page,
-      limit
-    );
-    const totalPages = Math.ceil(total / limit);
-
-    if (page > totalPages && total > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Only ${totalPages} page(s) available. You requested page ${page}.`,
-      });
-    }
+    const { data, pagination, message } = result;
 
     res.status(200).json({
       success: true,
-       ...(responseMessage && { message: responseMessage }),
+      ...(message && { message }),
       data,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages,
-      },
+      pagination,
     });
   });
 }
