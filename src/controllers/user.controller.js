@@ -33,34 +33,46 @@ class UserController {
   });
 
   /**
- * Get paginated users.
- * Handles query parameters: `page`, `limit`
- * Delegates pagination, validation, and capping logic to the service layer.
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+   * Get paginated users.
+   * Handles query parameters: `page`, `limit`
+   * Delegates pagination, validation, and capping logic to the service layer.
+   *
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
   getAllUsers = asyncHandler(async (req, res) => {
-    const rawPage = req.query.page;
-    const rawLimit = req.query.limit;
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 5;
 
-    const result = await userServices.getAllUsersPaginated(rawPage, rawLimit);
+    let responseMessage;
+    if (limit > 5) {
+      limit = 5;
+      res.set('X-Limit-Adjusted', true);
+      responseMessage = `Limit capped to 5. You requested ${req.query.limit}.`;
+    }
 
-    // In case of validation failure, service will return status and message
-    if (!result.success) {
-      return res.status(result.statusCode || 400).json({
+    const { data, total, totalPages } = await userServices.getAllUsersPaginated(
+      page,
+      limit
+    );
+
+    if (page > totalPages && total > 0) {
+      return res.status(400).json({
         success: false,
-        message: result.message,
+        message: `Only ${totalPages} page(s) available. You requested page ${page}.`,
       });
     }
 
-    const { data, pagination, message } = result;
-
     res.status(200).json({
       success: true,
-      ...(message && { message }),
+      ...(responseMessage && { message: responseMessage }),
       data,
-      pagination,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+      },
     });
   });
 }
