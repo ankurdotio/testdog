@@ -33,6 +33,26 @@ If your PR aligns with our development direction and passes checks we’ll merge
 
 ---
 
+## 🧪 Testing: `/api/v1/users/all`
+
+We’ve written automated tests using **Jest** and **Supertest** for the `/api/v1/users/all` route.
+
+### 📦 Prerequisites
+
+- Node.js and npm installed
+- Local MongoDB instance running
+
+---
+
+### 🧾 Environment Setup
+
+1. Copy the test environment config:
+   ```bash
+   cp .env.test.example .env.test
+
+   Your .env.test.example file should look like:
+   MONGODB_URI=mongodb://localhost:27017/myapp-test
+
 ## Found a Bug or Issue?
 
 If you encounter any problems or have suggestions:
