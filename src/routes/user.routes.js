@@ -13,6 +13,7 @@ router
 
 router.route('/getrandomuser').get(userController.getRandomUser);
 
-router.get('/all', validate(getAllUsersValidator), userController.getAllUsers);
+router.route('/all').get(validate(getAllUsersValidator), userController.getAllUsers);
+
 
 export default router;

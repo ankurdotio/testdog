@@ -263,10 +263,39 @@ class UserService {
    * @returns {Promise<Object>} - Paginated users with total count
    */
 
-  async getAllUsersPaginated(page, limit) {
-  return await userDAO.getAllUsersPaginated(page, limit);
-}
+  async getAllUsersPaginated(page = 1, limit = 5) {
+    const MAX_LIMIT = 5;
+    let cappedMessage;
 
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    if (limit > MAX_LIMIT) {
+      cappedMessage = `Limit capped to ${MAX_LIMIT}. You requested ${limit}.`;
+      limit = MAX_LIMIT;
+    }
+
+    const { data, total } = await userDAO.getAllUsersPaginated(page, limit);
+    const totalPages = Math.ceil(total / limit);
+
+    if (page > totalPages && total > 0) {
+      throw new AppError(
+        `Only ${totalPages} page(s) available. You requested page ${page}.`,
+        400
+      );
+    }
+
+    return {
+      data,
+      message: cappedMessage,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+      },
+    };
+  }
 }
 
 export default new UserService();
