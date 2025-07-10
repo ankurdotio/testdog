@@ -1,41 +1,62 @@
+import mongoose from 'mongoose';
 import request from 'supertest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import app from '../app.js';
 import User from '../models/user.model.js';
 
+let mongoServer;
+
+beforeAll(async () => {
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+
+  // Close existing connection if already open (from app.js maybe)
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+
+  await mongoose.connect(uri);
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  await mongoServer.stop();
+});
+
+beforeEach(async () => {
+  await User.create([
+    {
+      username: 'user1',
+      name: 'Xavier Rodgriues',
+      email: 'user1@example.com',
+      password: 'Password@123',
+      role: 'user',
+      isEmailVerified: true,
+    },
+    {
+      username: 'user2',
+      name: 'Ali Ansari',
+      email: 'user2@example.com',
+      password: 'Password@123',
+      role: 'user',
+      isEmailVerified: true,
+    },
+    {
+      username: 'user3',
+      name: 'Dev Tester',
+      email: 'user3@example.com',
+      password: 'Password@123',
+      role: 'user',
+      isEmailVerified: true,
+    },
+  ]);
+});
+
+afterEach(async () => {
+  await User.deleteMany();
+});
+
 describe('User API - GET /api/v1/users/all', () => {
-  beforeEach(async () => {
-    await User.create([
-      {
-        username: 'user1',
-        name: 'Xavier Rodgriues',
-        email: 'user1@example.com',
-        password: 'Password@123',
-        role: 'user',
-        isEmailVerified: true,
-      },
-      {
-        username: 'user2',
-        name: 'Ali Ansari',
-        email: 'user2@example.com',
-        password: 'Password@123',
-        role: 'user',
-        isEmailVerified: true,
-      },
-      {
-        username: 'user3',
-        name: 'Dev Tester',
-        email: 'user3@example.com',
-        password: 'Password@123',
-        role: 'user',
-        isEmailVerified: true,
-      },
-    ]);
-  });
-
-  afterEach(async () => {
-    await User.deleteMany();
-  });
-
   it('✅ should return all users with default pagination', async () => {
     const res = await request(app).get('/api/v1/users/all');
     expect(res.statusCode).toBe(200);
