@@ -31,6 +31,27 @@ class UserController {
     }
     res.status(200).json({ success: true, data: user });
   });
+
+  /**
+ * Get paginated users.
+ * Handles query parameters: `page`, `limit`
+ * Delegates pagination, validation, and capping logic to the service layer.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+  getAllUsers = asyncHandler(async (req, res) => {
+    const { page, limit } = req.query;
+
+    const result = await userServices.getAllUsersPaginated(page, limit);
+
+    res.status(200).json({
+      success: true,
+      ...(result.message && { message: result.message }),
+      data: result.data,
+      pagination: result.pagination,
+    });
+  });
 }
 
 export default new UserController();
