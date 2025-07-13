@@ -214,8 +214,55 @@ export const productRateLimiter = createRateLimiterWithFallback({
   },
 });
 
+export const userRateLimiter = createRateLimiterWithFallback({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 100, // limit each IP to 100 requests per windowMs for user endpoints
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRedisStore('rate_limit:user:'),
+  keyGenerator: (req) => `${req.ip}:user`,
+  skipSuccessfulRequests: false,
+  skipFailedRequests: false,
+  message: {
+    status: 'error',
+    statusCode: 429,
+    message: 'Too many user requests from this IP, please try again later.',
+    details: {
+      retryAfter: '5 minutes',
+      maxRequests: 100,
+      windowMs: 300000,
+    },
+  },
+  onLimitReached: (req, res, options) => {
+    logger.warn('User rate limit exceeded', {
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      path: req.path,
+      method: req.method,
+      limit: options.max,
+      windowMs: options.windowMs,
+    });
+  },
+  handler: (req, res) => {
+    res.status(429).json({
+      status: 'error',
+      statusCode: 429,
+      message: 'Too many user requests from this IP, please try again later.',
+      details: {
+        retryAfter: '5 minutes',
+        maxRequests: 100,
+        windowMs: 300000,
+        ip: req.ip,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  },
+});
+
 export default {
   registerRateLimiter,
   authRateLimiter,
   generalRateLimiter,
+  productRateLimiter,
+  userRateLimiter,
 };

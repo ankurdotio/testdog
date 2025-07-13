@@ -263,8 +263,8 @@ class UserService {
    * @returns {Promise<Object>} - Paginated users with total count
    */
 
-  async getAllUsersPaginated(page = 1, limit = 5) {
-    const MAX_LIMIT = 5;
+  async getAllUsersPaginated(page = 1, limit = 10) {
+    const MAX_LIMIT = 50; // Increased from 5 to 50 for better usability
     let cappedMessage;
 
     page = parseInt(page);

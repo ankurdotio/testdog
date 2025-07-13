@@ -34,6 +34,6 @@ export const getAllUsersValidator = [
 
   query('limit')
     .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('Limit must be between 1 and 5.'),
+    .isInt({ min: 1, max: 50 })
+    .withMessage('Limit must be between 1 and 50.'),
 ];

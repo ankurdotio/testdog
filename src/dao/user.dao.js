@@ -105,8 +105,17 @@ class UserDAO {
    */
   async getAllUsersPaginated(page = 1, limit = 50) {
     const skip = (page - 1) * limit;
+
+    // Include role but exclude sensitive fields for security
+    const selectFields =
+      '+role -password -isEmailVerified -forgotPasswordToken -emailVerificationToken -__v';
+
     const [data, total] = await Promise.all([
-      User.find().skip(skip).limit(limit),
+      User.find()
+        .select(selectFields)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }), // Sort by newest first
       User.countDocuments(),
     ]);
     return { data, total };
