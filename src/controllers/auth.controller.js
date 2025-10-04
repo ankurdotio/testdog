@@ -1,3 +1,4 @@
+import Joi from 'joi';
 import asyncHandler from '../utils/asyncHandler.js';
 import config from '../config/config.js';
 import userService from '../services/user.service.js';
@@ -7,13 +8,45 @@ import * as CONSTANTS from '../constants/constants.js';
 import { timeStringToSeconds } from '../utils/timeUtils.js';
 
 class AuthController {
+  // Joi schemas for validation
+  registerSchema = Joi.object({
+    username: Joi.string().min(3).max(30).required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+    // Add other fields if needed
+  });
+
+  loginSchema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  });
+
+  verifyEmailSchema = Joi.object({
+    email: Joi.string().email().required(),
+  });
+
+  // Helper method to validate request body
+  validateBody = (schema, body) => {
+    const { error, value } = schema.validate(body, { abortEarly: false });
+    if (error) {
+      const messages = error.details.map((detail) => detail.message);
+      const err = new Error(messages.join(', '));
+      err.statusCode = 400;
+      throw err;
+    }
+    return value;
+  };
+
   /**
    * Register a new user.
    * @param {Object} req - Express request object containing user data.
    * @param {Object} res - Express response object.
    */
   register = asyncHandler(async (req, res) => {
-    const user = await userService.registerUser(req.body);
+    // Validate request body
+    const validatedData = this.validateBody(this.registerSchema, req.body);
+
+    const user = await userService.registerUser(validatedData);
     const accessToken = userService.generateAccessToken({
       userId: user._id,
       username: user.username,
@@ -62,7 +95,10 @@ class AuthController {
    * @param {Object} res - Express response object.
    */
   login = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    // Validate request body
+    const validatedData = this.validateBody(this.loginSchema, req.body);
+
+    const { email, password } = validatedData;
     const { user } = await userService.loginUser(email, password);
 
     const accessToken = userService.generateAccessToken({
@@ -244,7 +280,10 @@ class AuthController {
    * @param {Object} res - Express response object.
    */
   verifyEmail = asyncHandler(async (req, res) => {
-    const { email } = req.body;
+    // Validate request body
+    const validatedData = this.validateBody(this.verifyEmailSchema, req.body);
+
+    const { email } = validatedData;
     if (!email) {
       return res
         .status(400)
@@ -279,14 +318,14 @@ class AuthController {
       return res
         .status(400)
         .json({ success: false, message: 'Token is required' });
-    }
+    };
 
     const user = await userService.verifyEmail(token);
     if (!user) {
       return res
         .status(401)
         .json({ success: false, message: 'Invalid or expired token' });
-    }
+    };
 
     res
       .status(200)

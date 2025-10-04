@@ -23,6 +23,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
+    "joi":"^18.0.1",
     "express-validator": "^7.2.1",
     "googleapis": "^150.0.1",
     "gravatar": "^1.8.2",
