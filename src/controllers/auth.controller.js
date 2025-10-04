@@ -12,7 +12,7 @@ class AuthController {
   registerSchema = Joi.object({
     username: Joi.string().min(3).max(30).required(),
     email: Joi.string().email().required(),
-    password: Joi.string().min(8).max(128).required(),
+    password: Joi.string().min(8).max(18).required(),
     // Add other fields if needed
   });
 
@@ -284,12 +284,15 @@ class AuthController {
     const validatedData = this.validateBody(this.verifyEmailSchema, req.body);
 
     const { email } = validatedData;
+    if(!email){
+      return res.status(400).json({success:false,message:'Email is required'})
+    }
 
     // Generate verification token
     const verificationToken = await userService.generateVerificationToken({
       email,
     });
-
+ 
     // Send verification email
     await sendVerificationEmail(
       email,
