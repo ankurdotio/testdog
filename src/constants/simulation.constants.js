@@ -45,7 +45,7 @@ export const ERROR_CATALOG = [
     type: ERROR_TYPES.DATABASE,
     statusCode: 422,
     message: 'Invalid ID Format',
-    hint: 'That doesn\'t look like a valid MongoDB ObjectId.',
+    hint: "That doesn't look like a valid MongoDB ObjectId.",
   },
 
   // --- NETWORK ERRORS ---
@@ -59,7 +59,7 @@ export const ERROR_CATALOG = [
     type: ERROR_TYPES.NETWORK,
     statusCode: 502,
     message: 'Bad Gateway',
-    hint: 'Received garbage from the upstream server. Maybe it\'s down?',
+    hint: "Received garbage from the upstream server. Maybe it's down?",
   },
   {
     type: ERROR_TYPES.NETWORK,
@@ -79,7 +79,7 @@ export const ERROR_CATALOG = [
     type: ERROR_TYPES.VALIDATION,
     statusCode: 400,
     message: 'Invalid Email',
-    hint: 'That doesn\'t look like a real email address.',
+    hint: "That doesn't look like a real email address.",
   },
   {
     type: ERROR_TYPES.VALIDATION,
