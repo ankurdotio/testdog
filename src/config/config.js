@@ -27,10 +27,10 @@ const _config = {
 };
 
 let finalConfig;
-if (process.env.NODE_ENV === 'testing') {
-  finalConfig = _config; // Don't freeze in testing mode
-} else {
+if (process.env.NODE_ENV === 'production') {
   finalConfig = Object.freeze(_config);
+} else {
+  finalConfig = _config; // Keep config mutable outside production for tests and local overrides
 }
 
 export default finalConfig;

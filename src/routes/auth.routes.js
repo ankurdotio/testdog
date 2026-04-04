@@ -1,6 +1,8 @@
 import express from 'express';
 import passport from 'passport';
 import authController from '../controllers/auth.controller.js';
+import AppError from '../utils/appError.js';
+import { googleOAuthEnabled } from '../config/passport.js';
 import { protect } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import {
@@ -42,18 +44,27 @@ router
   .get(validate(verifyEmailTokenValidator), authController.verifyEmailToken);
 
 // OAuth routes
-router.route('/google').get(
-  passport.authenticate('google', {
-    scope: ['profile', 'email'],
-  })
-);
+if (googleOAuthEnabled) {
+  router.route('/google').get(
+    passport.authenticate('google', {
+      scope: ['profile', 'email'],
+    })
+  );
 
-router.route('/google/callback').get(
-  passport.authenticate('google', {
-    failureRedirect: '/login-failed', // Redirect to failure page if authentication fails
-    session: false,
-  }),
-  authController.googleCallback
-);
+  router.route('/google/callback').get(
+    passport.authenticate('google', {
+      failureRedirect: '/login-failed', // Redirect to failure page if authentication fails
+      session: false,
+    }),
+    authController.googleCallback
+  );
+} else {
+  const oauthUnavailable = (req, res, next) => {
+    next(new AppError('Google OAuth is not configured on this server.', 503));
+  };
+
+  router.route('/google').get(oauthUnavailable);
+  router.route('/google/callback').get(oauthUnavailable);
+}
 
 export default router;

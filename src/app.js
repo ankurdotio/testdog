@@ -33,12 +33,14 @@ import userRoutes from './routes/user.routes.js';
 import productRoutes from './routes/product.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
+import genAiImplementationRoutes from './routes/gen-ai-implementation.routes.js';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/store/products', productRoutes);
 app.use('/api/v1/store/cart', cartRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/gen-ai-implementation', genAiImplementationRoutes);
 
 // // Simple route for checking server status
 app.get('/', (req, res) => {
