@@ -5,15 +5,15 @@ import connectToDatabase from './src/config/db.js';
 import redisService from './src/config/redis.js';
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', async (error) => {
   logger.error(`Uncaught Exception: ${error.message}`, { stack: error.stack });
-  process.exit(1);
+  await gracefulShutdown();
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', async (reason, promise) => {
   logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
-  process.exit(1);
+  await gracefulShutdown();
 });
 
 // Connect to database
