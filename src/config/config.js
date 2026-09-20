@@ -2,6 +2,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'testing') {
+  throw new Error('FATAL: JWT_SECRET is required but not set in environment.');
+}
+
 const _config = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: process.env.PORT || 3000,
