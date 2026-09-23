@@ -33,6 +33,19 @@ If your PR aligns with our development direction and passes checks we’ll merge
 
 ---
 
+## GenAI Implementation Guide
+
+The API now includes a public guide endpoint for planning a LangChain-based GenAI feature.
+
+- `GET /api/v1/gen-ai-implementation` returns the full guide for single-agent, multi-agent, and LangGraph approaches.
+- `GET /api/v1/gen-ai-implementation?mode=single` returns only the single-agent blueprint.
+- `GET /api/v1/gen-ai-implementation?mode=multi` returns the multi-agent blueprint.
+- `GET /api/v1/gen-ai-implementation?mode=langgraph` returns the LangGraph blueprint.
+
+The response is structured so a UI can render hero copy, theme data, comparison cards, and implementation steps.
+
+---
+
 ## Found a Bug or Issue?
 
 If you encounter any problems or have suggestions:

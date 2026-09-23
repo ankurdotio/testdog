@@ -10,10 +10,26 @@ import { convertCurrency } from '../utils/currencyUtils.js';
 
 class PaymentService {
   constructor() {
-    this.razorpay = new Razorpay({
-      key_id: config.razorpay.keyId,
-      key_secret: config.razorpay.keySecret,
-    });
+    this.razorpay =
+      config.razorpay.keyId && config.razorpay.keySecret
+        ? new Razorpay({
+          key_id: config.razorpay.keyId,
+          key_secret: config.razorpay.keySecret,
+        })
+        : null;
+
+    if (!this.razorpay) {
+      logger.warn('Razorpay is disabled because credentials are missing.');
+    }
+  }
+
+  ensureRazorpayConfigured() {
+    if (!this.razorpay) {
+      throw new AppError(
+        'Payment service is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.',
+        503
+      );
+    }
   }
 
   // Generate unique order ID
@@ -24,6 +40,8 @@ class PaymentService {
   // Create order for cart payment
   async createCartOrder(userId, shippingAddress = null, notes = '') {
     try {
+      this.ensureRazorpayConfigured();
+
       // Get user's cart using DAO
       const cart = await cartDAO.findCartByUserId(userId);
 
@@ -147,6 +165,8 @@ class PaymentService {
     notes = ''
   ) {
     try {
+      this.ensureRazorpayConfigured();
+
       // Get product details using DAO
       const product = await productDAO.findProductById(productId);
       if (!product) {
@@ -241,6 +261,8 @@ class PaymentService {
     razorpayPaymentId,
     razorpaySignature
   ) {
+    this.ensureRazorpayConfigured();
+
     const body = razorpayOrderId + '|' + razorpayPaymentId;
     const expectedSignature = crypto
       .createHmac('sha256', config.razorpay.keySecret)
@@ -253,6 +275,8 @@ class PaymentService {
   // Verify and confirm payment
   async verifyPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature) {
     try {
+      this.ensureRazorpayConfigured();
+
       // Verify signature
       const isValidSignature = this.verifyPaymentSignature(
         razorpayOrderId,
@@ -363,6 +387,8 @@ class PaymentService {
   // Refund payment
   async refundPayment(paymentId, refundAmount = null, reason = '') {
     try {
+      this.ensureRazorpayConfigured();
+
       const payment = await paymentDAO.findById(paymentId);
       if (!payment) {
         throw new AppError('Payment not found', 404);
@@ -374,8 +400,8 @@ class PaymentService {
 
       const refundAmountInPaise =
         refundAmount &&
-        refundAmount > 0 &&
-        Math.round(refundAmount * 100) <= payment.amount
+          refundAmount > 0 &&
+          Math.round(refundAmount * 100) <= payment.amount
           ? Math.round(refundAmount * 100)
           : payment.amount;
 
@@ -414,6 +440,8 @@ class PaymentService {
   // Handle Razorpay webhooks
   async handleWebhook(signature, payload) {
     try {
+      this.ensureRazorpayConfigured();
+
       // Verify webhook signature
       const expectedSignature = crypto
         .createHmac('sha256', config.razorpay.keySecret)
