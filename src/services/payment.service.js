@@ -374,8 +374,8 @@ class PaymentService {
 
       const refundAmountInPaise =
         refundAmount &&
-        refundAmount > 0 &&
-        Math.round(refundAmount * 100) <= payment.amount
+          refundAmount > 0 &&
+          Math.round(refundAmount * 100) <= payment.amount
           ? Math.round(refundAmount * 100)
           : payment.amount;
 
@@ -477,6 +477,10 @@ class PaymentService {
         webhookData: paymentData,
       });
     }
+  }
+
+  async sayHello() {
+    return 'Hello Ankur Bhiya '
   }
 
   // Handle refund processed webhook
